@@ -26,7 +26,7 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<IActionResult> RegisterUser(UserRegisterDTO UserRegisterRequest)
     {
-        var existingUser = _context.UsersAccounts
+        var existingUser = _context.UserAccounts
             .FirstOrDefault(u => u.Email == UserRegisterRequest.Email);
         if (existingUser != null) 
         {
@@ -52,7 +52,7 @@ public class AuthenticationService : IAuthenticationService
             PublicKey = KeyPair.PublicKey,
         };
 
-        await _context.UsersAccounts.AddAsync(newUser);
+        await _context.UserAccounts.AddAsync(newUser);
         await _context.SaveChangesAsync();
         var token = CreateJWT(newUser.Id);
         return new OkObjectResult(new 
@@ -69,7 +69,7 @@ public class AuthenticationService : IAuthenticationService
     }
     public async Task<IActionResult> LoginUser(UserLoginDTO UserLoginRequest)
     {
-        var userSalt = _context.UsersAccounts
+        var userSalt = _context.UserAccounts
             .Where(u => u.Email == UserLoginRequest.Email)
             .Select(u => u.Salt)
             .FirstOrDefault();
@@ -79,7 +79,7 @@ public class AuthenticationService : IAuthenticationService
         }
         var passwordHash = HashString(UserLoginRequest.Password + userSalt);
         
-        var existingUser = _context.UsersAccounts
+        var existingUser = _context.UserAccounts
             .Where(u => u.Email == UserLoginRequest.Email && u.PasswordHash == passwordHash)
             .FirstOrDefault();
         

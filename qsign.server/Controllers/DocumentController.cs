@@ -13,45 +13,39 @@ using qsign.server.Context;
 namespace qsign.server.Controllers;
 
 [ApiController]
-[Route("api")]
-public class NewDocumentController : ControllerBase
+[Route("api/[controller]")]
+public class DocumentController : ControllerBase
 {
     private readonly IDocumentService _service;
     
-    public NewDocumentController(IDocumentService service)
+    public DocumentController(IDocumentService service)
     {
         _service = service;
     }
 
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> GetUsersDocumentsAction()
+    {
+        return await _service.GetUserDocuments(HttpContext);
+    }
+
     [HttpPost]
     [Authorize]
-    [Route("UploadDocument")]
-    public async Task<IActionResult> UploadDocument(IFormFile file)
+    public async Task<IActionResult> UploadDocumentAction(IFormFile file)
     {
         return await _service.UploadDocument(HttpContext, file);
     }
 
-    [HttpGet]
-    [Authorize]
-    [Route("GetUserDocuments")]
-    public async Task<IActionResult> GetUsersDocuments()
-    {
-        return Ok();
-    }
-
-    [HttpGet]
-    [Route("DownloadDocument/{DocumentId}")]
-    // [Authorize]
-    public async Task<IActionResult> DownloadDocument(Guid DocumentId)
-    {
-        return await _service.DownloadDocument(DocumentId);
-    }
-
-    [HttpGet]
-    [Route("GetDocumentInfo/{DocumentId}")]
-    // [Authorize]
-    public async Task<IActionResult> GetDocumentInfo(Guid DocumentId)
+    [HttpGet("{DocumentId}")]
+    public async Task<IActionResult> GetDocumentInfoAction(Guid DocumentId)
     {
         return await _service.GetDocumentInfo(DocumentId);
+    }
+
+    [HttpGet("{DocumentId}/download")]
+    public async Task<IActionResult> DownloadDocumentAction(Guid DocumentId)
+    {
+        return await _service.DownloadDocument(DocumentId);
     }
 }

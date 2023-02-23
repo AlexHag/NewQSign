@@ -1,10 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
 
 using qsign.server.Services;
 using qsign.server.Context;
-using System.Net.Http.Headers;
-using System.Security.Cryptography;
 using qsign.server.Models;
+using qsign.server.Controllers;
 
 namespace qsign.server.Services;
 
@@ -18,10 +21,19 @@ public class DocumentService : IDocumentService
         _context = context;
     }
 
+    public async Task<IActionResult> GetUserDocuments(HttpContext httpContext)
+    {
+        Guid userId = _helper.GetRequestUserId(httpContext);
+        var UsersDocuments = await _context.DocumentInfos.Where(p => p.SubjectUserId == userId).ToListAsync();
+        return new OkObjectResult(UsersDocuments);
+    }
+
     // TODO: Handle error if document already exists. Sign document self now.
     public async Task<IActionResult> UploadDocument(HttpContext httpContext, IFormFile file)
     {
         Guid userId = _helper.GetRequestUserId(httpContext);
+        
+        // Handle blob upload error
         string fileId = await BlobUpload(file);
         
         var stream = file.OpenReadStream();
@@ -38,23 +50,7 @@ public class DocumentService : IDocumentService
         await _context.DocumentInfos.AddAsync(newDocument);
         await _context.SaveChangesAsync();
 
-        return new CreatedAtActionResult("GetDocumentInfo", "NewDocument", new { DocumentId = newDocument.Id }, newDocument);
-    }
-
-    public Task<IActionResult> GetUsersDocuments(HttpContext httpContext)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<IActionResult> DownloadDocument(Guid DocumentId)
-    {
-        var DocumentBlob = await BlobDownload(DocumentId);
-        if(DocumentBlob == null) return new NotFoundObjectResult(null);
-        
-        var returnthing = new FileContentResult(DocumentBlob.FileBytes, DocumentBlob.ContentType);
-        returnthing.FileDownloadName = DocumentBlob.FileName;
-        
-        return returnthing;
+        return new CreatedAtActionResult("GetDocumentInfoAction", "Document", new { DocumentId = newDocument.Id }, newDocument);
     }
 
     public async Task<IActionResult> GetDocumentInfo(Guid DocumentId)
@@ -65,7 +61,19 @@ public class DocumentService : IDocumentService
         return new OkObjectResult(DocumentObject);
     }
 
+    public async Task<IActionResult> DownloadDocument(Guid DocumentId)
+    {
+        var DocumentBlob = await BlobDownload(DocumentId);
+        if(DocumentBlob == null) return new NotFoundObjectResult(null);
+        
+        var FileReturn = new FileContentResult(DocumentBlob.FileBytes, DocumentBlob.ContentType);
+        FileReturn.FileDownloadName = DocumentBlob.FileName;
+        
+        return FileReturn;
+    }
     
+
+
     // This is a mock of the Azure Blob Storage and should be changed in the future.
     // Returns ID of the uploaded document. TODO: Handle exception
     private async Task<string> BlobUpload(IFormFile file)
