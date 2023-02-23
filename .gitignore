@@ -1,2 +1,10 @@
 qsign.server/obj
 qsign.server/bin
+qsign.server/Migrations
+qsign.server/QSignDataBase.db
+qsign.blob/obj
+qsign.blob/bin
+qsign.blob/Migrations
+qsign.blob/BlobDocumentInfoDataBase.db
+qsign.blob/DocumentFiles/**
+scripting

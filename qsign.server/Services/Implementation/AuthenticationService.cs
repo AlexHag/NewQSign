@@ -1,7 +1,7 @@
 
 
-using server.Models;
-using server.Context;
+using qsign.server.Models;
+using qsign.server.Context;
 using System.Text;
 using System.Security.Cryptography;
 using System.IdentityModel.Tokens.Jwt;
@@ -9,7 +9,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Mvc;
 
-namespace server.Services;
+namespace qsign.server.Services;
 
 public class AuthenticationService : IAuthenticationService
 {
@@ -52,6 +52,7 @@ public class AuthenticationService : IAuthenticationService
             PublicKey = KeyPair.PublicKey,
         };
 
+        await _context.UsersAccounts.AddAsync(newUser);
         await _context.SaveChangesAsync();
         var token = CreateJWT(newUser.Id);
         return new OkObjectResult(new 

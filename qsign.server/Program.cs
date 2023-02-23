@@ -4,8 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
-using server.Context;
-using server.Services;
+using qsign.server.Context;
+using qsign.server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +58,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<ICryptoECDSAService, CryptoECDSAService>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddScoped<IHelperFunctions, HelperFunctions>();
 
 builder.Services.AddControllers();
 var app = builder.Build();

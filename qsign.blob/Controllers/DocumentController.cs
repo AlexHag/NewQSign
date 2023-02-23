@@ -28,7 +28,7 @@ public class DocumentController : ControllerBase
         return File(FileData, documentObject.ContentType, documentObject.FileName);
     }
 
-    [HttpPost()]
+    [HttpPost]
     public async Task<IActionResult> UploadDocument(IFormFile file)
     {
         var FileId = Guid.NewGuid().ToString();

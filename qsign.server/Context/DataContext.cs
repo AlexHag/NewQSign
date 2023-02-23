@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using server.Models;
+using qsign.server.Models;
 
-namespace server.Context;
+namespace qsign.server.Context;
 
 public class DataContext : DbContext
 {
@@ -9,16 +9,16 @@ public class DataContext : DbContext
     { }
 
     public DbSet<UserAccount> UsersAccounts { get; set; }
-
-    public DbSet<User> Users { get; set; }
     public DbSet<DocumentInfo> DocumentInfos { get; set; }
-    public DbSet<SignatureInfo> SignatureInfos { get; set; }
-    public DbSet<CommunicationInfo> CommunicationInfos { get; set; } 
-    public DbSet<PendingCommunication> PendingCommunications { get; set; }
+
+    // public DbSet<User> Users { get; set; }
+    // public DbSet<SignatureInfo> SignatureInfos { get; set; }
+    // public DbSet<CommunicationInfo> CommunicationInfos { get; set; } 
+    // public DbSet<PendingCommunication> PendingCommunications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
-		modelBuilder.Entity<User>()
+		modelBuilder.Entity<UserAccount>()
 			.HasIndex(p => p.Email)
 			.IsUnique(true);
     }

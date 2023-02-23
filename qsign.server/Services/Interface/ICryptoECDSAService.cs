@@ -1,5 +1,5 @@
 
-namespace server.Services;
+namespace qsign.server.Services;
 
 public interface ICryptoECDSAService
 {

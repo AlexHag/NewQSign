@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
-using server.Models;
-using server.Services;
+using qsign.server.Models;
+using qsign.server.Services;
 
-namespace server.Controllers;
+namespace qsign.server.Controllers;
 
 [ApiController]
 [Route("api")]

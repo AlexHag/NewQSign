@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace server.Services;
+namespace qsign.server.Services;
 
 public class CryptoECDSAService : ICryptoECDSAService
 {

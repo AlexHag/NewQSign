@@ -1,7 +1,7 @@
-using server.Models;
+using qsign.server.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace server.Services;
+namespace qsign.server.Services;
 
 public interface IAuthenticationService
 {
