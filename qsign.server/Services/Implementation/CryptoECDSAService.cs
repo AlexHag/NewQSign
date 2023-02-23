@@ -18,7 +18,7 @@ public class CryptoECDSAService : ICryptoECDSAService
             // Compress points in the future
             // byte prefix = (byte)((yCoord[yCoord.Length - 1] & 1) == 0 ? 0x02: 0x03);
             byte[] PublicPoint = new byte[xCoord.Length + yCoord.Length + 1];
-            PublicPoint[0] = 0x04;
+            PublicPoint[0] = 0x04; // should be compressed prefix 0x02 or 0x03
             Buffer.BlockCopy(xCoord, 0, PublicPoint, 1, xCoord.Length);
             Buffer.BlockCopy(yCoord, 0, PublicPoint, xCoord.Length + 1, yCoord.Length);
             var PublicKey = BitConverter.ToString(PublicPoint).Replace("-", "");
@@ -31,19 +31,17 @@ public class CryptoECDSAService : ICryptoECDSAService
         }
     }
 
-    public string SignString(string DataString, string PrivateKey)
+    public string SignHash(string HashString, string PrivateKey)
     {
         using(ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256))
         {
             ecdsa.ImportParameters(new ECParameters{Curve = ECCurve.NamedCurves.nistP256, D = StringToByteArray(PrivateKey)});
-            var MessageBytes = Encoding.ASCII.GetBytes(DataString);
-            
-            var SignatureBytes = ecdsa.SignData(MessageBytes, HashAlgorithmName.SHA256);
+            var SignatureBytes = ecdsa.SignHash(StringToByteArray(HashString));
             return BitConverter.ToString(SignatureBytes).Replace("-", string.Empty);
         }
     }
 
-    public bool VerifySignature(string DataString, string Signature, string SubjectPublicKey)
+    public bool VerifySignatureHash(string HashString, string Signature, string SubjectPublicKey)
     {
         using (ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256))
         {
@@ -56,7 +54,7 @@ public class CryptoECDSAService : ICryptoECDSAService
                     Y = StringToByteArray(SubjectPublicKey).Skip(33).ToArray()
                 }
             });
-            return ecdsa.VerifyData(Encoding.ASCII.GetBytes(DataString), StringToByteArray(Signature), HashAlgorithmName.SHA256);
+            return ecdsa.VerifyHash(StringToByteArray(HashString), StringToByteArray(Signature));
         }
     }
 

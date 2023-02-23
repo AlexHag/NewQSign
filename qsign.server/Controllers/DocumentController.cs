@@ -37,6 +37,7 @@ public class DocumentController : ControllerBase
         return await _service.UploadDocument(HttpContext, file);
     }
 
+    // Should signatures be returned here?
     [HttpGet("{DocumentId}")]
     public async Task<IActionResult> GetDocumentInfoAction(Guid DocumentId)
     {
