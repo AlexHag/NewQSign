@@ -147,6 +147,6 @@ public class AuthenticationService : IAuthenticationService
                 Sb.Append(b.ToString("x2"));
         }
 
-        return Sb.ToString();
+        return Sb.ToString().ToLowerInvariant();
     }
 }

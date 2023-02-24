@@ -22,7 +22,8 @@ public class DocumentController : ControllerBase
     {
         _service = service;
     }
-
+    
+    // Check if documents are signed by others or the inviter(s)
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetUsersDocumentsAction()
@@ -30,6 +31,7 @@ public class DocumentController : ControllerBase
         return await _service.GetUserDocuments(HttpContext);
     }
 
+    // TODO: Add invitations parameter
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> UploadDocumentAction(IFormFile file)
@@ -37,7 +39,6 @@ public class DocumentController : ControllerBase
         return await _service.UploadDocument(HttpContext, file);
     }
 
-    // Should signatures be returned here?
     [HttpGet("{DocumentId}")]
     public async Task<IActionResult> GetDocumentInfoAction(Guid DocumentId)
     {
@@ -48,5 +49,12 @@ public class DocumentController : ControllerBase
     public async Task<IActionResult> DownloadDocumentAction(Guid DocumentId)
     {
         return await _service.DownloadDocument(DocumentId);
+    }
+
+    [HttpPost("{DocumentId}/sign")]
+    [Authorize]
+    public async Task<IActionResult> SignDocument(Guid DocumentId)
+    {
+        return await _service.SignDocument(HttpContext, DocumentId);
     }
 }

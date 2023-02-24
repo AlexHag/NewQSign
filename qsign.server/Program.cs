@@ -60,7 +60,6 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<ICryptoECDSAService, CryptoECDSAService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IHelperFunctions, HelperFunctions>();
-builder.Services.AddScoped<ISignatureService, SignatureService>();
 
 builder.Services.AddControllers();
 var app = builder.Build();

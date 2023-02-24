@@ -15,10 +15,12 @@ public class DocumentService : IDocumentService
 {
     private DataContext _context;
     private readonly IHelperFunctions _helper;
-    public DocumentService(IHelperFunctions helper, DataContext context)
+    private readonly ICryptoECDSAService _crypto;
+    public DocumentService(IHelperFunctions helper, DataContext context, ICryptoECDSAService crypto)
     {
         _helper = helper;
         _context = context;
+        _crypto = crypto;
     }
 
     public async Task<IActionResult> GetUserDocuments(HttpContext httpContext)
@@ -32,6 +34,8 @@ public class DocumentService : IDocumentService
     public async Task<IActionResult> UploadDocument(HttpContext httpContext, IFormFile file)
     {
         Guid userId = _helper.GetRequestUserId(httpContext);
+        var TheUser = await _context.UserAccounts.FindAsync(userId);
+        if(TheUser == null) throw new Exception("User not found should not happen since JWT is valid.");
         
         // Handle blob upload error
         string fileId = await BlobUpload(file);
@@ -43,11 +47,15 @@ public class DocumentService : IDocumentService
         {
             Id = Guid.Parse(fileId),
             SubjectUserId = userId,
+            SubjectFirstName = TheUser.FirstName,
+            SubjectLastName = TheUser.LastName,
+            SubjectEmail = TheUser.Email,
             Filename = file.FileName,
             Hash = Hash
         };
 
         await _context.DocumentInfos.AddAsync(newDocument);
+        await SignDocument(httpContext, newDocument.Id);
         await _context.SaveChangesAsync();
 
         return new CreatedAtActionResult("GetDocumentInfoAction", "Document", new { DocumentId = newDocument.Id }, newDocument);
@@ -55,10 +63,17 @@ public class DocumentService : IDocumentService
 
     public async Task<IActionResult> GetDocumentInfo(Guid DocumentId)
     {
-        var DocumentObject = _context.DocumentInfos.Find(DocumentId);
-        if(DocumentObject == null) return new NotFoundObjectResult(null);
+        var DocumentInfo = _context.DocumentInfos.Find(DocumentId);
+        var DocumentSignatures = await _context.SignatureInfos
+            .Where(p => p.DocumentId == DocumentId)
+            .ToListAsync();
+        if(DocumentInfo == null) return new NotFoundObjectResult(null);
         
-        return new OkObjectResult(DocumentObject);
+        return new OkObjectResult(new
+        {
+            DocumentInfo = DocumentInfo,
+            DocumentSignatures = DocumentSignatures
+        });
     }
 
     public async Task<IActionResult> DownloadDocument(Guid DocumentId)
@@ -70,6 +85,41 @@ public class DocumentService : IDocumentService
         FileReturn.FileDownloadName = DocumentBlob.FileName;
         
         return FileReturn;
+    }
+
+    public async Task<IActionResult> SignDocument(HttpContext httpContext, Guid DocumentId)
+    {
+        Guid userId = _helper.GetRequestUserId(httpContext);
+        var TheUser = await _context.UserAccounts.FindAsync(userId);
+        if(TheUser == null) throw new Exception("User not found should not happen since JWT is valid.");     
+
+        var TheDocumentInfo = await _context.DocumentInfos.FindAsync(DocumentId);
+        if(TheDocumentInfo == null) return new BadRequestObjectResult("Document not found"); // 404 Not found instead?
+        
+        var SignatureAlreadyExists = _context.SignatureInfos
+            .Where(p => p.DocumentId == DocumentId && p.SubjectId == userId).FirstOrDefault();
+        if(SignatureAlreadyExists != null) return new BadRequestObjectResult("Document already signed");
+
+        var TheSignatureString = _crypto.SignHash(TheDocumentInfo.Hash, TheUser.PrivateKey);
+
+        var TheNewSignatureObject = new SignatureInfo
+        {
+            Id = Guid.NewGuid(),
+            SubjectId = TheUser.Id,
+            SubjectFirstName = TheUser.FirstName,
+            SubjectLastName = TheUser.LastName,
+            SubjectEmail = TheUser.Email,
+            DocumentId = DocumentId,
+            DocumentHash = TheDocumentInfo.Hash,
+            Signature = TheSignatureString,
+            SubjectPublicKey = TheUser.PublicKey,
+            IssuedAt = DateTime.UtcNow
+        };
+
+        await _context.SignatureInfos.AddAsync(TheNewSignatureObject);
+        await _context.SaveChangesAsync();
+        
+        return new CreatedAtActionResult("GetDocumentInfoAction", "Document", new { DocumentId = DocumentId }, TheNewSignatureObject);
     }
     
 

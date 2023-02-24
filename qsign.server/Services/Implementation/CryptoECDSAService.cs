@@ -10,7 +10,7 @@ public class CryptoECDSAService : ICryptoECDSAService
         using(ECDsa ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256))
         {
             var KeyParameters = ecdsa.ExportParameters(true);
-            var PrivateKey = BitConverter.ToString(KeyParameters.D).Replace("-", "");
+            var PrivateKey = BitConverter.ToString(KeyParameters.D).Replace("-", "").ToLowerInvariant();
 
             byte[] xCoord = KeyParameters.Q.X;
             byte[] yCoord = KeyParameters.Q.Y;
@@ -21,7 +21,7 @@ public class CryptoECDSAService : ICryptoECDSAService
             PublicPoint[0] = 0x04; // should be compressed prefix 0x02 or 0x03
             Buffer.BlockCopy(xCoord, 0, PublicPoint, 1, xCoord.Length);
             Buffer.BlockCopy(yCoord, 0, PublicPoint, xCoord.Length + 1, yCoord.Length);
-            var PublicKey = BitConverter.ToString(PublicPoint).Replace("-", "");
+            var PublicKey = BitConverter.ToString(PublicPoint).Replace("-", "").ToLowerInvariant();
 
             return new ECDSAKeyPair
             {
@@ -37,7 +37,7 @@ public class CryptoECDSAService : ICryptoECDSAService
         {
             ecdsa.ImportParameters(new ECParameters{Curve = ECCurve.NamedCurves.nistP256, D = StringToByteArray(PrivateKey)});
             var SignatureBytes = ecdsa.SignHash(StringToByteArray(HashString));
-            return BitConverter.ToString(SignatureBytes).Replace("-", string.Empty);
+            return BitConverter.ToString(SignatureBytes).Replace("-", string.Empty).ToLowerInvariant();
         }
     }
 
