@@ -24,18 +24,29 @@ public class DocumentController : ControllerBase
     }
     
     // Check if documents are signed by others or the inviter(s)
-    [HttpGet]
+    [HttpGet("mine")]
     [Authorize]
     public async Task<IActionResult> GetUsersDocumentsAction()
     {
         return await _service.GetUserDocuments(HttpContext);
     }
 
+    [HttpGet("mine/invites")]
+    [Authorize]
+    public async Task<IActionResult> GetUsersDocumentsInvitesAction()
+    {
+        throw new NotImplementedException();
+    }
+
     // TODO: Add invitations parameter
     [HttpPost]
     [Authorize]
-    public async Task<IActionResult> UploadDocumentAction(IFormFile file)
+    public async Task<IActionResult> UploadDocumentAction([FromBody] IFormFile file, List<string> UserEmailInvites)
     {
+        foreach(var userEmail in UserEmailInvites)
+        {
+            Console.WriteLine(userEmail);
+        }
         return await _service.UploadDocument(HttpContext, file);
     }
 
